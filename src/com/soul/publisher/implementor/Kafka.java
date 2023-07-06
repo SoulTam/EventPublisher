@@ -1,5 +1,7 @@
 package com.soul.publisher.implementor;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
@@ -7,11 +9,12 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import com.soul.properties.PropertiesConfiger;
 import com.soul.publisher.api.EventPublisher;
 
 public class Kafka implements EventPublisher {
 
-	private String topicId = "";
+//	private String topicId = "";
 
 	private Properties kafkaProp = new Properties();
 
@@ -22,27 +25,37 @@ public class Kafka implements EventPublisher {
 	}
 
 	@Override
-	public void initiatePublisher(String dataQueueName, Properties publisherProp) throws Exception {
+	public void initiatePublisher(String publisherId, Properties publisherProp) throws Exception {
 		// TODO Auto-generated method stub
-		topicId = "KafkaTopic";
-		kafkaProp.put("bootstrap.servers", publisherProp);
-		kafkaProp.put("acks", publisherProp);
-		kafkaProp.put("retries", publisherProp);
-		kafkaProp.put("batchSize", publisherProp);
-		kafkaProp.put("lingerMs", publisherProp);
-		kafkaProp.put("bufferMemory", publisherProp);
-		kafkaProp.put("keySerializer", publisherProp);
-		kafkaProp.put("valueSerializer", publisherProp);
+//		topicId = "KafkaTopic";
+//		kafkaProp.put("bootstrap.servers", publisherProp);
+//		kafkaProp.put("acks", publisherProp);
+//		kafkaProp.put("retries", publisherProp);
+//		kafkaProp.put("batchSize", publisherProp);
+//		kafkaProp.put("lingerMs", publisherProp);
+//		kafkaProp.put("bufferMemory", publisherProp);
+//		kafkaProp.put("keySerializer", publisherProp);
+//		kafkaProp.put("valueSerializer", publisherProp);
 
-		producer = new KafkaProducer<String, String>(kafkaProp);
+		kafkaProp = PropertiesConfiger.installProperties(publisherProp, publisherId);
+
+		kafkaStartup();
 	}
 
 	@Override
 	public Future<?> publish(String message) throws Exception {
 		// TODO Auto-generated method stub
-		ProducerRecord<String, String> record = new ProducerRecord<String, String>(topicId, topicId, message);
+		ProducerRecord<String, String> record = new ProducerRecord<String, String>(this.kafkaProp.getProperty("topic"),
+				this.kafkaProp.getProperty("key"), message);
 
-		Future<RecordMetadata> future = producer.send(record);
+		Future<RecordMetadata> future;
+
+		try {
+			future = producer.send(record);
+		} catch (IllegalStateException e) {
+			kafkaStartup();
+			future = producer.send(record);
+		}
 
 		return future;
 	}
@@ -60,14 +73,38 @@ public class Kafka implements EventPublisher {
 	@Override
 	public String trackId(Future<?> future) throws Exception {
 		// TODO Auto-generated method stub
-		RecordMetadata metadata = (RecordMetadata) future.get();
-		return null;
+		RecordMetadata metadata = (RecordMetadata) track(future);
+
+		StringBuilder messageId = new StringBuilder();
+
+		if (metadata.hasTimestamp()) {
+			messageId.append(new SimpleDateFormat("yyMMddHHmmss").format(new Date(metadata.timestamp())));
+		} else {
+			messageId.append("S").append(new SimpleDateFormat("yyMMddHHmmss").format(new Date()));
+		}
+
+		return messageId.toString();
 	}
 
 	@Override
 	public Object track(Future<?> future) throws Exception {
 		// TODO Auto-generated method stub
-		return future.get();
+		Object obj;
+
+		try {
+			obj = future.get();
+		} catch (IllegalStateException e) {
+			kafkaStartup();
+			obj = future.get();
+		}
+		return obj;
+	}
+
+	/**
+	 * To start producer with current setup
+	 */
+	private void kafkaStartup() {
+		producer = new KafkaProducer<String, String>(kafkaProp);
 	}
 
 }

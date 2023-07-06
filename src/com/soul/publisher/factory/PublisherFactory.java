@@ -10,8 +10,6 @@ import com.soul.publisher.api.EventPublisher;
 
 public class PublisherFactory {
 
-//	private static volatile PublisherFactory factory = null;
-
 	private Properties publisherProperties = null;
 
 	public PublisherFactory(String propertiesPath) throws FileNotFoundException, IOException {
@@ -19,26 +17,21 @@ public class PublisherFactory {
 		publisherProperties = new Properties();
 		publisherProperties.load(new FileInputStream(new File(propertiesPath)));
 	}
-//
-//	public static PublisherFactory getInstance(String propertiesPath) throws FileNotFoundException, IOException {
-//		if (factory == null) {
-//			synchronized (PublisherFactory.class) {
-//				if (factory == null) {
-//					factory = new PublisherFactory(propertiesPath);
-//				}
-//			}
-//		}
-//		return factory;
-//	}
 
-	public EventPublisher createPublisherByName(String publisherName) throws Exception {
+	public EventPublisher getPublisherFor(String publisherId) throws Exception {
 
-		Class<?> publisherObject = Class.forName(publisherName);
+		if (publisherProperties != null) {
 
-		EventPublisher publisher = (EventPublisher) publisherObject.newInstance();
-		publisher.initiatePublisher(publisherName, publisherProperties);
+			Class<?> publisherObject = Class
+					.forName(publisherProperties.getProperty(publisherId + ".publisher.class"));
 
-		return publisher;
+			EventPublisher publisher = (EventPublisher) publisherObject.newInstance();
+			publisher.initiatePublisher(publisherId, publisherProperties);
+
+			return publisher;
+		}
+		return null;
+
 	}
 
 	public Properties getPublisherProperties() {
