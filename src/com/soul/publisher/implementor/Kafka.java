@@ -27,15 +27,6 @@ public class Kafka implements EventPublisher {
 	@Override
 	public void initiatePublisher(String publisherId, Properties publisherProp) throws Exception {
 		// TODO Auto-generated method stub
-//		topicId = "KafkaTopic";
-//		kafkaProp.put("bootstrap.servers", publisherProp);
-//		kafkaProp.put("acks", publisherProp);
-//		kafkaProp.put("retries", publisherProp);
-//		kafkaProp.put("batchSize", publisherProp);
-//		kafkaProp.put("lingerMs", publisherProp);
-//		kafkaProp.put("bufferMemory", publisherProp);
-//		kafkaProp.put("keySerializer", publisherProp);
-//		kafkaProp.put("valueSerializer", publisherProp);
 
 		kafkaProp = PropertiesConfiger.installProperties(publisherProp, publisherId);
 
@@ -78,9 +69,13 @@ public class Kafka implements EventPublisher {
 		StringBuilder messageId = new StringBuilder();
 
 		if (metadata.hasTimestamp()) {
-			messageId.append(new SimpleDateFormat("yyMMddHHmmss").format(new Date(metadata.timestamp())));
+			messageId.append(new SimpleDateFormat("HHmmss").format(new Date(metadata.timestamp())));
 		} else {
-			messageId.append("S").append(new SimpleDateFormat("yyMMddHHmmss").format(new Date()));
+			messageId.append("S").append(new SimpleDateFormat("HHmmss").format(new Date()));
+		}
+		
+		if(metadata.hasOffset()) {
+			messageId.append(metadata.offset());
 		}
 
 		return messageId.toString();
