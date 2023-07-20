@@ -10,9 +10,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 import com.soul.properties.PropertiesConfiger;
-import com.soul.publisher.api.EventPublisher;
+import com.soul.publisher.api.PublisherApi;
 
-public class Kafka implements EventPublisher {
+public class Kafka implements PublisherApi {
 
 //	private String topicId = "";
 
@@ -100,6 +100,12 @@ public class Kafka implements EventPublisher {
 	 */
 	private void kafkaStartup() {
 		producer = new KafkaProducer<String, String>(kafkaProp);
+	}
+
+	@Override
+	public Object send(String message) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

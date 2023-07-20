@@ -4,9 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.Properties;
 
-import com.soul.publisher.api.EventPublisher;
+import com.soul.publisher.api.PublisherApi;
 
 public class PublisherFactory {
 
@@ -18,14 +19,13 @@ public class PublisherFactory {
 		publisherProperties.load(new FileInputStream(new File(propertiesPath)));
 	}
 
-	public EventPublisher getPublisherFor(String publisherId) throws Exception {
+	public PublisherApi getPublisherFor(String publisherId) throws Exception {
 
 		if (publisherProperties != null) {
 
-			Class<?> publisherObject = Class
-					.forName(publisherProperties.getProperty(publisherId + ".publisher.class"));
+			Class<?> publisherObject = Class.forName(publisherProperties.getProperty(publisherId + ".publisher.class"));
 
-			EventPublisher publisher = (EventPublisher) publisherObject.newInstance();
+			PublisherApi publisher = (PublisherApi) publisherObject.newInstance();
 			publisher.initiatePublisher(publisherId, publisherProperties);
 
 			return publisher;
